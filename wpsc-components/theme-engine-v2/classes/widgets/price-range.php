@@ -69,7 +69,12 @@ class WPSC_Widget_Price_Range extends WP_Widget {
 
 	public function widget( $args, $instance ) {
 		global $wpdb;
-		$prices = $wpdb->get_row( 'SELECT COUNT(DISTINCT meta_value) AS count, MAX(meta_value) AS max, MIN(meta_value) AS min FROM ' . $wpdb->postmeta . ' AS m INNER JOIN ' . $wpdb->posts . ' ON m.post_id = ID WHERE meta_key = "_wpsc_price" AND meta_value > 0' );
+
+		$prices = get_transient( 'wpsc_pr_widget_v2_prices' );
+		if ( false === $prices ) {
+			$prices = $wpdb->get_row( 'SELECT COUNT(DISTINCT meta_value) AS count, MAX(meta_value) AS max, MIN(meta_value) AS min FROM ' . $wpdb->postmeta . ' AS m INNER JOIN ' . $wpdb->posts . ' as p ON m.post_id = p.ID WHERE m.meta_key = "_wpsc_price" AND m.meta_value > 0 AND p.post_status = "publish"' );
+			set_transient( 'wpsc_pr_widget_v2_prices', $prices, DAY_IN_SECONDS );
+		}
 
 		if ( empty( $prices->count ) ) {
 			return;

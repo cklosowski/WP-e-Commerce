@@ -107,7 +107,12 @@ function wpsc_price_range( $args = null ) {
 	$args = wp_parse_args( (array)$args, array() );
 
 	$product_page = get_option( 'product_list_url' );
-	$result = $wpdb->get_results( "SELECT DISTINCT CAST(`meta_value` AS DECIMAL) AS `price` FROM " . $wpdb->postmeta . " AS `m` WHERE `meta_key` IN ('_wpsc_price') ORDER BY `price` ASC", ARRAY_A );
+	$result       = get_transient( 'wpsc_pr_widget_v1_prices' );
+
+	if ( false === $result ) {
+		$result = $wpdb->get_results( "SELECT DISTINCT CAST(`meta_value` AS DECIMAL) AS `price` FROM " . $wpdb->postmeta . " AS `m` WHERE `meta_key` IN ('_wpsc_price') ORDER BY `price` ASC", ARRAY_A );
+		set_transient( 'wpsc_pr_widget_v1_prices', $result, DAY_IN_SECONDS );
+	}
 
 	if ( $result != null ) {
 		sort( $result );

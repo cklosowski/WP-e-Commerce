@@ -18,6 +18,7 @@ function wpsc_get_max_upload_size(){
 * @return nothing
 */
 function wpsc_admin_submit_product( $post_ID, $post ) {
+	global $wpdb;
 
 	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || $post->post_type != 'wpsc-product' ) {
 		return;
@@ -272,6 +273,14 @@ function wpsc_admin_submit_product( $post_ID, $post ) {
 	}
 	do_action('wpsc_edit_product', $product_id);
 	}
+
+	// Reset the price range widget data so users don't have to run it
+	$prices_v1 = $wpdb->get_results( "SELECT DISTINCT CAST(`meta_value` AS DECIMAL) AS `price` FROM " . $wpdb->postmeta . " AS `m` WHERE `meta_key` IN ('_wpsc_price') ORDER BY `price` ASC", ARRAY_A );
+	set_transient( 'wpsc_pr_widget_v1_prices', $prices_v1, DAY_IN_SECONDS );
+
+	$prices_v2 = $wpdb->get_row( 'SELECT COUNT(DISTINCT meta_value) AS count, MAX(meta_value) AS max, MIN(meta_value) AS min FROM ' . $wpdb->postmeta . ' AS m INNER JOIN ' . $wpdb->posts . ' as p ON m.post_id = p.ID WHERE m.meta_key = "_wpsc_price" AND m.meta_value > 0 AND p.post_status = "publish"' );
+	set_transient( 'wpsc_pr_widget_v2_prices', $prices_v2, DAY_IN_SECONDS );
+
 	return $product_id;
 }
 

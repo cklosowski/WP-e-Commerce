@@ -886,4 +886,3 @@ function wpsc_replace_bloginfo_title( $input, $show ) {
 	}
 	return $input;
 }
-
